@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>economy SHAB</title>
+    <link rel="stylesheet" href="economy-shab.css" />
+  </head>
+  <body>
+    <div class="stack">
+      <div class="input-row">
+        <div class="input-field">
+          <label for="location-select">Region wählen</label>
+          <select id="location-select"></select>
+        </div>
+        <div class="input-field">
+          <label for="industry-select">Branche wählen</label>
+          <select id="industry-select"></select>
+        </div>
+      </div>
+      <div>
+        <label for="year-select">Jahr wählen</label>
+        <div id="year-select"></div>
+      </div>
+      <div id="economy-shab-chart"></div>
+      <div class="source">
+        <label for="source">Quelle: SHAB via Moneyhouse API</label>
+      </div>
+    </div>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://d3js.org/d3-array.v2.min.js"></script>
+    <script src="https://unpkg.com/d3-delaunay@5.3.0/dist/d3-delaunay.min.js"></script>
+    <script src="economy-shab.js"></script>
+  </body>
+</html>
