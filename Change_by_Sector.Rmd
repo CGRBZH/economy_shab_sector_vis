@@ -1,0 +1,42 @@
+---
+title: "Change_by_Sector"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(ggplot2)
+
+```
+
+
+```{r }
+data <- read_csv("https://raw.githubusercontent.com/statistikZH/economy_SHAB_private/master/Economy_SHAB_sectors.csv?token=ALJEHNQR2COZX3ZMJNKNIF27VQITW") %>% 
+  select(-c(variable_short, variable_long))
+
+data
+
+```
+
+```{r}
+
+df <- data %>% 
+  mutate(year = strftime(date,format="%Y"),
+         week = strftime(date,format="%Y-%W")) %>% 
+  filter(year %in% c(2019, 2020)) %>% 
+  group_by(year, week, location, mh_abschnitt) %>% 
+  summarise(cumsum = sum(value)) %>% 
+  pivot_wider(names_from = year, values_from = cumsum)
+
+df
+
+```
+
+```{r}
+
+df <- 
+
+```
+
