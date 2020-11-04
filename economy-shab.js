@@ -1,5 +1,5 @@
 // Set up
-const DATA_URL = "https://raw.githubusercontent.com/statistikZH/economy_SHAB_private/master/Economy_SHAB_sectors.csv?token=ALJEHNT4VLMY7VNLW2DNPHC7VOKFY";
+const DATA_URL = "https://raw.githubusercontent.com/statistikZH/economy_SHAB_private/master/Economy_SHAB_sectors.csv?token=ALJEHNU7G2IVAOWS66HAU3C7VQQME";
 
 const dispatch = d3.dispatch("filter"); // Select options at top of chart
 const colors = ["#a9dfff", "#009ee0", "#0076bd", "#e30059"];
@@ -9,38 +9,43 @@ d3.csv(DATA_URL).then((csv) => {
   // Convert all date to 2020 so they can be plotted on the same x time axis
   const parseTime = d3.timeParse("%Y-%m-%d");
   const data = csv
-    .filter((d) => d.value > 0)
+    // .filter((d) => d.value > 0)
     .map((d) => ({
       value: +d.value, // Values to numeric
-      date: d.shab_date,
-      year: d.shab_date.slice(0, 4), // Extract year from date
-      time: parseTime(`2020-${d.shab_date.slice(5)}`), // Month-Day
+      date: d.date,
+      year: d.date.slice(0, 4), // Extract year from date
+      time: parseTime(`2020-${d.date.slice(5)}`), // Month-Day
       location: d.location,
-      industry: d.noga_abt_desc_short,
+      industry: d.mh_abschnitt,
     }));
 
   const locations = [
     "CH",
     ...Array.from(new Set(data.map((d) => d.location))).sort(),
   ];
-  const industries = Array.from(new Set(data.map((d) => d.industry))).sort();
+  const industries = [
+    "Alle Branchen",
+    ...Array.from(new Set(data.map((d) => d.industry))).sort(),
+  ];
   const years = Array.from(new Set(data.map((d) => d.year))).sort();
 
   const selected = {
-    location: locations[0],
-    industry: industries[0],
+    location: "ZH",
+    industry: "Alle Branchen",
     years: years.slice(),
   };
 
   renderSelect({
     selection: d3.select("#location-select"),
     options: locations,
+    selected: selected.location,
     dispatch,
     dimension: "location",
   });
   renderSelect({
     selection: d3.select("#industry-select"),
     options: industries,
+    selected: selected.industry,
     dispatch,
     dimension: "industry",
   });
@@ -69,19 +74,21 @@ function filter(data, selected) {
   return data.filter((d) => {
     if (selected.location !== "CH" && d.location !== selected.location)
       return false;
-    if (d.industry !== selected.industry) return false;
+    if (selected.industry !== "Alle Branchen" && d.industry !== selected.industry)
+      return false;
     if (!selected.years.includes(d.year)) return false;
     return true;
   });
 }
 
 // Location/industry select
-function renderSelect({ selection, options, dispatch, dimension }) {
+function renderSelect({ selection, options, selected, dispatch, dimension }) {
   selection
     .selectAll("option")
     .data(options)
     .join("option")
     .attr("value", (d) => d)
+    .attr("selected", (d) => (d === selected ? "selected" : null))
     .text((d) => d);
   selection.on("change", function () {
     dispatch.call("filter", null, {
@@ -301,10 +308,24 @@ function renderChart({ selection, color }) {
 
   function wrangleData(data) {
     const groupedByYear = Array.from(
-      d3.group(data, (d) => d.year),
+      d3.rollup(
+        data,
+        (v) => {
+          if (v.length === 1) {
+            return v[0];
+          } else {
+            return Object.assign({}, v[0], {
+              value: d3.sum(v, (d) => d.value),
+              location: "CH",
+            });
+          }
+        },
+        (d) => d.year,
+        (d) => d.date
+      ),
       ([key, values]) => ({
         key,
-        values,
+        values: Array.from(values.values()),
       })
     );
     groupedByYear.forEach((d) =>
